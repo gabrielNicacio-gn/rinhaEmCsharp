@@ -6,5 +6,5 @@ using src.Models;
 
 namespace src.DTOs
 {
-    public record RespostasExtrato(Saldo Saldo,List<Transacao> UltimasTransacoes);
+    public record RequestTransaction(int Value, TypeOfTransaction Type, string Description);
 }
