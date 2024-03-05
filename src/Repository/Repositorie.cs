@@ -22,10 +22,10 @@ namespace src.Repository
         public async Task Add(Transactions transaction, uint id)
         {
             var tasks = new List<Task>();
-            Task add = Task.Run(()=>transactions.Add(transaction));
-            Task addtransactionInClient = Task.Run(async ()=>
-            {   
-                if(listClients.Any(c=>c.Id.Equals(id)))
+            Task add = Task.Run(() => transactions.Add(transaction));
+            Task addtransactionInClient = Task.Run(async () =>
+            {
+                if (listClients.Any(c => c.Id.Equals(id)))
                 {
                     var client = await Search(id);
                     client.transactions.Add(transaction);
@@ -40,23 +40,26 @@ namespace src.Repository
         {
             Task<bool> exist = Task.Run(() => listClients.Any(d => d.Id.Equals(id)));
             return await exist;
-        } 
+        }
 
         public async Task<Client> Search(uint id)
         {
-            Task<Client> search = Task.Run(()=> listClients
-            .Where(d=>d.Id.Equals(id))
+            Task<Client> search = Task.Run(() => listClients
+            .Where(d => d.Id.Equals(id))
             .First());
 
             return await search;
         }
-        public async Task UpdateBalance(uint id,int value)
+        public async Task UpdateBalance(uint id, int value)
         {
-              Task up = Task.Run(()=>{foreach(var cli in listClients.Where(c=>c.Id.Equals(id)))
+            Task up = Task.Run(() =>
+            {
+                foreach (var cli in listClients.Where(c => c.Id.Equals(id)))
                 {
                     cli.Balance -= value;
-                }});
-                await up;
+                }
+            });
+            await up;
         }
     }
 }

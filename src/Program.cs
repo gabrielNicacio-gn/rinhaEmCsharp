@@ -3,13 +3,12 @@ using src.Services;
 using src.DTOs;
 using src.Repository;
 using System.Text.Json.Serialization;
-using src.Endpoints;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddSingleton<IRepositorie,Repositorie>();
+builder.Services.AddSingleton<IRepositorie, Repositorie>();
 //builder.Services.AddScoped<AppDb>();
 builder.Services.AddScoped<ServiceClient>();
 
@@ -22,16 +21,16 @@ if (app.Environment.IsDevelopment())
 }
 app.UseHttpsRedirection();
 
-app.MapGet("cliente/{id}",async (uint id ,[FromServices]ServiceClient _servico) =>
+app.MapGet("cliente/{id}", async (uint id, [FromServices] ServiceClient _servico) =>
 {
     return await _servico.ConsultarExtrato(id);
 });
 
 app.MapPost("cliente/{id}/transacao", async (uint id,
-                [FromServices]ServiceClient _service,
-                [FromBody]RequestTransaction request)=>
+                [FromServices] ServiceClient _service,
+                [FromBody] RequestTransaction request) =>
 {
-    return await _service.PerformTransaction(id,request);
+    return await _service.PerformTransaction(id, request);
 });
 app.Run();
 
