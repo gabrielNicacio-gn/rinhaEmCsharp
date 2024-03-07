@@ -17,10 +17,11 @@ namespace src.Services
         {
             _appContext = appContext;
         }
+        private static SemaphoreSlim slim = new SemaphoreSlim(1);
 
-        public async Task<IResult> Debit(uint id, RequestTransaction request, Client client, Transactions transaction)
+        private async Task<IResult> Debit(uint id, RequestTransaction request, Client client, Transactions transaction)
         {
-            if (client.Balance - request.Value < 0 - client.Limit)
+            if (client.Balance - request.Value < -client.Limit)
             {
                 return Results.UnprocessableEntity();
             }
@@ -34,7 +35,7 @@ namespace src.Services
              };
             return Results.Ok(js);
         }
-        public async Task<IResult> Credit(uint id, RequestTransaction request, Client client, Transactions transaction)
+        private async Task<IResult> Credit(uint id, RequestTransaction request, Client client, Transactions transaction)
         {
             await _appContext.Add(transaction, id);
             await _appContext.UpdateBalance(id, transaction.Value);
@@ -49,18 +50,27 @@ namespace src.Services
 
         public async Task<IResult> PerformTransaction(uint id, RequestTransaction request)
         {
-            if (!await _appContext.Exist(id))
+            if (!await _appContext.Exist(id) || request.Type != 'c' && request.Type != 'd')
             {
                 return Results.NotFound("Não Existe");
             }
-
-            var client = await _appContext.Search(id);
-            var transaction = new Transactions(request.Value, request.Type, request.Description);
-            if (request.Type == TypeOfTransaction.Debit)
+            await slim.WaitAsync();
+            try
             {
-                return await Debit(id, request, client, transaction);
+                var client = await _appContext.Search(id);
+                var transaction = new Transactions(request.Value, request.Type, request.Description);
+                slim.Release();
+                if (request.Type == 'd')
+                {
+                    return await Debit(id, request, client, transaction);
+                }
+                return await Credit(id, request, client, transaction);
             }
-            return await Credit(id, request, client, transaction);
+            finally
+            {
+                slim.Release();
+            }
+
         }
 
         public async Task<IResult> ConsultarExtrato(uint id)
@@ -85,7 +95,7 @@ namespace src.Services
              .Select(t => new
              {
                  valor = t.Value,
-                 tipo = t.Type.ToString(),
+                 tipo = t.Type,
                  descricacao = t.Description,
                  realizada_em = t.DateOfTransaction
              })

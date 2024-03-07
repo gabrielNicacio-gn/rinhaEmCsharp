@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "/home/nicky/Dev/rinhaDeBackEnd/tests/tests.csproj": {}
+    "/home/nicacio/Dev/rinhaEmCsharp/tests/tests.csproj": {}
   },
   "projects": {
-    "/home/nicky/Dev/rinhaDeBackEnd/tests/tests.csproj": {
+    "/home/nicacio/Dev/rinhaEmCsharp/src/src.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/home/nicky/Dev/rinhaDeBackEnd/tests/tests.csproj",
-        "projectName": "tests",
-        "projectPath": "/home/nicky/Dev/rinhaDeBackEnd/tests/tests.csproj",
-        "packagesPath": "/home/nicky/.nuget/packages/",
-        "outputPath": "/home/nicky/Dev/rinhaDeBackEnd/tests/obj/",
+        "projectUniqueName": "/home/nicacio/Dev/rinhaEmCsharp/src/src.csproj",
+        "projectName": "src",
+        "projectPath": "/home/nicacio/Dev/rinhaEmCsharp/src/src.csproj",
+        "packagesPath": "/home/nicacio/.nuget/packages/",
+        "outputPath": "/home/nicacio/Dev/rinhaEmCsharp/src/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "/home/nicky/.nuget/NuGet/NuGet.Config"
+          "/home/nicacio/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
@@ -43,9 +43,102 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "dependencies": {
+            "Microsoft.AspNetCore.OpenApi": {
+              "target": "Package",
+              "version": "[8.0.2, )"
+            },
+            "Microsoft.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[8.0.2, )"
+            },
+            "Microsoft.EntityFrameworkCore.Design": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[8.0.2, )"
+            },
+            "Microsoft.EntityFrameworkCore.InMemory": {
+              "target": "Package",
+              "version": "[8.0.2, )"
+            },
+            "Swashbuckle.AspNetCore": {
+              "target": "Package",
+              "version": "[6.4.0, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.AspNetCore.App": {
+              "privateAssets": "none"
+            },
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/8.0.200/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "/home/nicacio/Dev/rinhaEmCsharp/tests/tests.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "/home/nicacio/Dev/rinhaEmCsharp/tests/tests.csproj",
+        "projectName": "tests",
+        "projectPath": "/home/nicacio/Dev/rinhaEmCsharp/tests/tests.csproj",
+        "packagesPath": "/home/nicacio/.nuget/packages/",
+        "outputPath": "/home/nicacio/Dev/rinhaEmCsharp/tests/obj/",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "/home/nicacio/.nuget/NuGet/NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net8.0": {
+            "targetAlias": "net8.0",
+            "projectReferences": {
+              "/home/nicacio/Dev/rinhaEmCsharp/src/src.csproj": {
+                "projectPath": "/home/nicacio/Dev/rinhaEmCsharp/src/src.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        }
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "dependencies": {
             "Microsoft.NET.Test.Sdk": {
               "target": "Package",
               "version": "[17.8.0, )"
+            },
+            "Moq": {
+              "target": "Package",
+              "version": "[4.20.70, )"
             },
             "coverlet.collector": {
               "target": "Package",
