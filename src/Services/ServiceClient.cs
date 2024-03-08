@@ -1,5 +1,7 @@
 
+using System.Reflection.Metadata.Ecma335;
 using System.Runtime.CompilerServices;
+using System.Security.Principal;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -19,23 +21,7 @@ namespace src.Services
         }
         private static SemaphoreSlim slim = new SemaphoreSlim(1);
 
-        private async Task<IResult> Debit(uint id, RequestTransaction request, Client client, Transactions transaction)
-        {
-            if (client.Balance - request.Value < -client.Limit)
-            {
-                return Results.UnprocessableEntity();
-            }
-            await _appContext.Add(transaction, id);
-            await _appContext.UpdateBalance(id, transaction.Value);
-            var js =
-             new
-             {
-                 limite = client.Limit,
-                 saldo = client.Balance
-             };
-            return Results.Ok(js);
-        }
-        private async Task<IResult> Credit(uint id, RequestTransaction request, Client client, Transactions transaction)
+        private async Task<IResult> FinalTransaction(uint id, RequestTransaction request, Client client, Transactions transaction)
         {
             await _appContext.Add(transaction, id);
             await _appContext.UpdateBalance(id, transaction.Value);
@@ -54,7 +40,10 @@ namespace src.Services
             {
                 return Results.NotFound("Não Existe");
             }
-            if (request.Type != 'c' && request.Type != 'd' || request.Description.Length > 10 || request.Value <= 0)
+            if (request.Type != 'c' && request.Type != 'd'
+            || request.Description.Length > 10
+            || request.Value <= 0
+            || string.IsNullOrEmpty(request.Description))
             {
                 return Results.UnprocessableEntity();
             }
@@ -65,18 +54,20 @@ namespace src.Services
                 var transaction = new Transactions(request.Value, request.Type, request.Description);
                 if (request.Type == 'd')
                 {
-                    return await Debit(id, request, client, transaction);
+                    var operation = !(client.Balance - request.Value < -client.Limit)
+                    ? await FinalTransaction(id, request, client, transaction)
+                    : Results.UnprocessableEntity();
+                    return operation;
                 }
-                return await Credit(id, request, client, transaction);
+                return await FinalTransaction(id, request, client, transaction);
             }
             finally
             {
                 slim.Release();
             }
-
         }
 
-        public async Task<IResult> ConsultarExtrato(uint id)
+        public async Task<IResult> GetExtract(uint id)
         {
             if (!await _appContext.Exist(id))
             {
@@ -104,6 +95,15 @@ namespace src.Services
              })
             };
             return Results.Ok(js);
+        }
+
+        public async Task<IResult> GetUserById(uint id)
+        {
+            if (!await _appContext.Exist(id))
+            {
+                return Results.NotFound();
+            }
+            return Results.Ok(await _appContext.Search(id));
         }
     }
 }

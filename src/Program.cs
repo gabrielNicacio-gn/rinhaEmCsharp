@@ -21,16 +21,23 @@ if (app.Environment.IsDevelopment())
 }
 app.UseHttpsRedirection();
 
-app.MapGet("cliente/{id}", async (uint id, [FromServices] ServiceClient _servico) =>
+var routes = app.MapGroup("/clientes");
+
+routes.MapGet("/{id}/extrato", async (uint id, [FromServices] ServiceClient _servico) =>
 {
-    return await _servico.ConsultarExtrato(id);
+    return await _servico.GetExtract(id);
 });
 
-app.MapPost("cliente/{id}/transacao", async (uint id,
+routes.MapPost("/{id}/transacao", async (uint id,
                 [FromServices] ServiceClient _service,
                 [FromBody] RequestTransaction request) =>
 {
     return await _service.PerformTransaction(id, request);
+});
+
+routes.MapGet("/{id}", async (uint id, [FromServices] ServiceClient _servico) =>
+{
+    return await _servico.GetUserById(id);
 });
 app.Run();
 
