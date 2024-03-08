@@ -59,7 +59,6 @@ namespace src.Services
             {
                 var client = await _appContext.Search(id);
                 var transaction = new Transactions(request.Value, request.Type, request.Description);
-                slim.Release();
                 if (request.Type == 'd')
                 {
                     return await Debit(id, request, client, transaction);
