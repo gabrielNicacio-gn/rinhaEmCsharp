@@ -50,9 +50,13 @@ namespace src.Services
 
         public async Task<IResult> PerformTransaction(uint id, RequestTransaction request)
         {
-            if (!await _appContext.Exist(id) || request.Type != 'c' && request.Type != 'd')
+            if (!await _appContext.Exist(id))
             {
                 return Results.NotFound("Não Existe");
+            }
+            if (request.Type != 'c' && request.Type != 'd' || request.Description.Length > 10 || request.Value <= 0)
+            {
+                return Results.UnprocessableEntity();
             }
             await slim.WaitAsync();
             try
