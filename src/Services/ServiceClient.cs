@@ -1,11 +1,8 @@
 
-using System.Reflection.Metadata.Ecma335;
-using System.Runtime.CompilerServices;
-using System.Security.Principal;
-using System.Text.Json;
-using System.Text.Json.Nodes;
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Mvc;
+using System.Data.Common;
+using System.Net.WebSockets;
+using Microsoft.VisualBasic;
+using Npgsql;
 using src.DTOs;
 using src.Models;
 using src.Repository;
@@ -15,16 +12,35 @@ namespace src.Services
     public class ServiceClient
     {
         private readonly IRepositorie _appContext;
-        public ServiceClient(IRepositorie appContext)
+        private readonly IConfiguration _configuration;
+        public ServiceClient(IRepositorie appContext, IConfiguration configuration)
         {
             _appContext = appContext;
+            _configuration = configuration;
         }
         private static SemaphoreSlim slim = new SemaphoreSlim(1);
 
         private async Task<IResult> FinalTransaction(uint id, RequestTransaction request, Client client, Transactions transaction)
         {
+
             await _appContext.Add(transaction, id);
             await _appContext.UpdateBalance(id, transaction.Value);
+
+            /*
+            using (var connection = new NpgsqlConnection(_configuration.GetConnectionString("ConncetDb")))
+            {
+                
+                await connection.OpenAsync();
+                var command = @"BEGIN
+                                INSERT INTO transacao (id, tipo, descricao, valor, data) 
+                                VALUES (@1,@2,@3,@4,@5) ";
+                using (var cmd = new NpgsqlCommand(command, connection))
+                {
+
+                }
+            
+            }
+            */
             var js =
              new
              {
@@ -47,7 +63,7 @@ namespace src.Services
             {
                 return Results.UnprocessableEntity();
             }
-            await slim.WaitAsync();
+            //await slim.WaitAsync();
             try
             {
                 var client = await _appContext.Search(id);
@@ -63,7 +79,7 @@ namespace src.Services
             }
             finally
             {
-                slim.Release();
+                //slim.Release();
             }
         }
 

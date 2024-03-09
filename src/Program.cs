@@ -28,7 +28,7 @@ routes.MapGet("/{id}/extrato", async (uint id, [FromServices] ServiceClient _ser
     return await _servico.GetExtract(id);
 });
 
-routes.MapPost("/{id}/transacao", async (uint id,
+routes.MapPost("/{id}/transacoes", async (uint id,
                 [FromServices] ServiceClient _service,
                 [FromBody] RequestTransaction request) =>
 {
