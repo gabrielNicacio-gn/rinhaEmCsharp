@@ -35,9 +35,5 @@ routes.MapPost("/{id}/transacoes", async (uint id,
     return await _service.PerformTransaction(id, request);
 });
 
-routes.MapGet("/{id}", async (uint id, [FromServices] ServiceClient _servico) =>
-{
-    return await _servico.GetUserById(id);
-});
 app.Run();
 

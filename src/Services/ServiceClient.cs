@@ -1,6 +1,8 @@
 
+using System.Data;
 using System.Data.Common;
 using System.Net.WebSockets;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.VisualBasic;
 using Npgsql;
 using src.DTOs;
@@ -23,36 +25,43 @@ namespace src.Services
         private async Task<IResult> FinalTransaction(uint id, RequestTransaction request, Client client, Transactions transaction)
         {
 
-            await _appContext.Add(transaction, id);
-            await _appContext.UpdateBalance(id, transaction.Value);
+            //await _appContext.Add(transaction, id);
+            //await _appContext.UpdateBalance(id, transaction.Value);
 
-            /*
-            using (var connection = new NpgsqlConnection(_configuration.GetConnectionString("ConncetDb")))
+            using (var connection = new NpgsqlConnection(_configuration.GetConnectionString("ConnectDb")))
             {
-                
                 await connection.OpenAsync();
                 var command = @"BEGIN
-                                INSERT INTO transacao (id, tipo, descricao, valor, data) 
-                                VALUES (@1,@2,@3,@4,@5) ";
+                                INSERT INTO transacoes (valor,id_cliente,tipo_transacao,descricao,realizada_em) 
+                                VALUES ($1,$2,$3,$4,$5); 
+
+                                UPDATE clientes SET saldo = saldo - $1 
+                                WHERE id = $2 
+                                RETURNING saldo,limite;
+                                END";
                 using (var cmd = new NpgsqlCommand(command, connection))
                 {
+                    cmd.Parameters.AddWithValue("$1", request.Value);
+                    cmd.Parameters.AddWithValue("$2", id);
+                    cmd.Parameters.AddWithValue("$3", request.Type);
+                    cmd.Parameters.AddWithValue("$4", request.Description);
+                    cmd.Parameters.AddWithValue("$5", DateTime.UtcNow);
 
+                    using var reader = await cmd.ExecuteReaderAsync();
+                    if (await reader.ReadAsync())
+                    {
+                        var balance = reader.GetInt32(0);
+                        var limit = reader.GetInt32(1);
+                        return Results.Ok(new { limit, balance });
+                    }
+                    return Results.UnprocessableEntity();
                 }
-            
             }
-            */
-            var js =
-             new
-             {
-                 limite = client.Limit,
-                 saldo = client.Balance
-             };
-            return Results.Ok(js);
         }
 
         public async Task<IResult> PerformTransaction(uint id, RequestTransaction request)
         {
-            if (!await _appContext.Exist(id))
+            if (id < 1 || id > 5)
             {
                 return Results.NotFound("Não Existe");
             }
@@ -63,63 +72,82 @@ namespace src.Services
             {
                 return Results.UnprocessableEntity();
             }
-            //await slim.WaitAsync();
+            await slim.WaitAsync();
             try
             {
                 var client = await _appContext.Search(id);
                 var transaction = new Transactions(request.Value, request.Type, request.Description);
-                if (request.Type == 'd')
+                if (request.Type == 'd' && client.Balance - request.Value < -client.Limit)
                 {
-                    var operation = !(client.Balance - request.Value < -client.Limit)
-                    ? await FinalTransaction(id, request, client, transaction)
-                    : Results.UnprocessableEntity();
+                    var operation = client.Balance - request.Value < -client.Limit
+                    ? Results.UnprocessableEntity()
+                    : await FinalTransaction(id, request, client, transaction);
                     return operation;
                 }
                 return await FinalTransaction(id, request, client, transaction);
             }
             finally
             {
-                //slim.Release();
+                slim.Release();
             }
         }
-
         public async Task<IResult> GetExtract(uint id)
         {
-            if (!await _appContext.Exist(id))
+            if (id < 1 || id > 5)
             {
                 return Results.NotFound("Não Existe");
             }
             var client = await _appContext.Search(id);
 
-            var js = new
+            using (var connection = new NpgsqlConnection(_configuration.GetConnectionString("ConnectDb")))
             {
-                saldo = new
+                await connection.OpenAsync();
+                var command = @"SELECT 
+                                c.saldo,
+                                c.limite,
+                                t.valor,
+                                t.tipo_transacao AS tipo,
+                                t.descricao,
+                                t.realizada_em AS data
+                                FROM clientes c
+                                LEFT JOIN 
+                                transacoes t ON c.id = t.id_cliente
+                                WHERE c.id = $1
+                                ORDER BY t.realizada_em DESC LIMIT 10";
+                using (var cmd = new NpgsqlCommand(command, connection))
                 {
-                    total = client.Balance,
-                    limite = client.Limit,
-                    data_extrato = DateTime.UtcNow
-                },
-                ultimas_transacoes =
-             client.transactions
-             .OrderBy(t => t.DateOfTransaction)
-             .Select(t => new
-             {
-                 valor = t.Value,
-                 tipo = t.Type,
-                 descricacao = t.Description,
-                 realizada_em = t.DateOfTransaction
-             })
-            };
-            return Results.Ok(js);
-        }
+                    cmd.Parameters.AddWithValue("$1", id);
+                    await cmd.PrepareAsync().ConfigureAwait(false);
+                    var read = await cmd.ExecuteReaderAsync().ConfigureAwait(false);
+                    if (!await read.ReadAsync())
+                    {
+                        return Results.NotFound();
+                    }
 
-        public async Task<IResult> GetUserById(uint id)
-        {
-            if (!await _appContext.Exist(id))
-            {
-                return Results.NotFound();
+                    var balance = read.GetInt32(0);
+                    var limit = read.GetInt32(1);
+                    var list = new List<ResponseTransactions>();
+                    list.Add(new ResponseTransactions
+                    {
+                        Value = read.GetInt32(2),
+                        Type = read.GetChar(3),
+                        Description = read.GetString(4),
+                        Hour = read.GetDateTime(5)
+                    });
+                    read.Close();
+                    var js = new
+                    {
+                        saldo = new
+                        {
+                            total = balance,
+                            limite = limit,
+                            ultimas_transacoes = list
+                        }
+                    };
+                    return Results.Ok(js);
+                }
             }
-            return Results.Ok(await _appContext.Search(id));
         }
     }
 }
+
