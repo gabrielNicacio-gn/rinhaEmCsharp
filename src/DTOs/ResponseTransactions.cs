@@ -6,5 +6,5 @@ using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace src.DTOs
 {
-    public record struct ResponseTransactions(int Value, char Type, string Description, DateTime Hour);
+    public record ResponseTransactions(int? valor, char? tipo_transacao, string? descricao, DateTime? realizada_em);
 }

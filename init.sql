@@ -1,28 +1,26 @@
 
-CREATE TABLE "clientes"(
-        "id" INT PRIMARY KEY
-        "saldo" INT NOT NULL
-        "limite" INT NOT NULL
+CREATE UNLOGGED TABLE cliente (
+    id INT PRIMARY KEY,
+    limite INT NOT NULL,
+    saldo INT NOT NULL
 );
 
-CREATE TABLE "transacoes" (
-        "id" SERIAL PRIMARY KEY,[]
-        "valor" INT NOT NULL,
-        "id_cliente" INT NOT NULL,
-        "tipo_transacao" CHAR(1) NOT NULL,
-        "descricao" VARCHAR(10) NOT NULL,
-        "realizada_em" DATETIME NOT NULL,
-        FOREIGN KEY ("id_cliente") REFERENCES "clientes" ("id")
+CREATE UNLOGGED TABLE transacao (
+    id SERIAL PRIMARY KEY,
+    valor INT NOT NULL,
+    tipo_transacao CHAR(1) NOT NULL,
+    descricao VARCHAR(10) NOT NULL,
+    realizada_em TIMESTAMP NOT NULL DEFAULT NOW(),
+    id_cliente INT NOT NULL,
+    FOREIGN KEY (id_cliente) REFERENCES cliente(id)
 );
 
-CREATE INDEX idx_transacoes_id_cliente ON transacoes (id_cliente);
-CREATE INDEX idx_transacoes_realizada_em ON transacoes (realizada_em DESC);
+CREATE INDEX idx_cliente ON cliente (id) INCLUDE (saldo, limite);
+CREATE INDEX idx_transacao_cliente ON transacao (id_cliente);
 
-INSERT INTO clientes(id, saldo, limite) 
-VALUES(
-    (1, 0, 100000),
-    (2, 0, 80000),
-    (3, 0, 1000000),
-    (4, 0, 10000000),
-    (5, 0, 500000);
-);
+INSERT INTO cliente (id, limite, saldo) VALUES
+(1, 100000, 0),
+(2, 80000, 0),
+(3, 1000000, 0),
+(4, 10000000, 0),
+(5, 500000, 0);
