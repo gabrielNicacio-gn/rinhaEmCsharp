@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace src.DTOs;
 
-public struct Balance
+public record Balance
 {
         public int saldo { get; set; }
         public int limite { get; set; }

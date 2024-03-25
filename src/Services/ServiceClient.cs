@@ -22,30 +22,43 @@ public class ServiceClient
     {
         _configuration = configuration;
     }
-    private static SemaphoreSlim slim = new SemaphoreSlim(1);
+    //private static SemaphoreSlim slim = new SemaphoreSlim(1);
     private string connStr = "Host=db;Port=5432;Database=rinha;Username=admin;Password=123;";
-    private async Task<IResult> FinalTransaction(int id, RequestTransaction request)
+    public async Task<IResult> PerformTransaction(int id, RequestTransaction request)
     {
+        if (id < 1 || id > 5)
+        {
+            return Results.NotFound("Não Existe");
+        }
+        if (request.Type != 'c' && request.Type != 'd'
+        || request.Description.Length > 10
+        || request.Value <= 0
+        || string.IsNullOrEmpty(request.Description))
+        {
+            return Results.UnprocessableEntity();
+        }
         try
         {
             using (var connection = new NpgsqlConnection(connStr))
             {
-                await connection.OpenAsync();
-                var update = request.Type == 'd' ? @"
-                                INSERT INTO transacao (valor,id_cliente,tipo_transacao,descricao,realizada_em) 
-                                VALUES (@valor,@id_cliente,@tipo_transacao,@descricao,NOW()); 
-                                UPDATE cliente SET saldo = saldo - @valor 
-                                WHERE id = @d_cliente 
-                                AND saldo - @valor >= - limite
-                                RETURNING saldo,limite;"
-                            : @"
+                var update = request.Type == 'c' ? @"   
                                 INSERT INTO transacao (valor,id_cliente,tipo_transacao,descricao,realizada_em) 
                                 VALUES (@valor,@id_cliente,@tipo_transacao,@descricao,NOW()); 
 
                                 UPDATE cliente SET saldo = saldo - @valor 
                                 WHERE id = @id_cliente 
                                 RETURNING saldo,limite;
+                                "
+                            : @"
+                                INSERT INTO transacao (valor,id_cliente,tipo_transacao,descricao,realizada_em) 
+                                VALUES (@valor,@id_cliente,@tipo_transacao,@descricao,NOW()); 
+
+                                UPDATE cliente SET saldo = saldo - @valor 
+                                WHERE id = @id_cliente 
+                                AND saldo - @valor >= - limite
+                                RETURNING saldo,limite;
                                 ";
+                await connection.OpenAsync().ConfigureAwait(false);
 
                 using (var cmd = new NpgsqlCommand(update, connection))
                 {
@@ -55,8 +68,10 @@ public class ServiceClient
                     cmd.Parameters.AddWithValue("@tipo_transacao", transaction.Type);
                     cmd.Parameters.AddWithValue("@descricao", transaction.Description);
 
-                    using var reader = await cmd.ExecuteReaderAsync();
-                    if (await reader.ReadAsync())
+                    await cmd.PrepareAsync().ConfigureAwait(false);
+
+                    var reader = await cmd.ExecuteReaderAsync().ConfigureAwait(false);
+                    while (await reader.ReadAsync().ConfigureAwait(false))
                     {
                         var balance = reader.GetInt32(0);
                         var limit = reader.GetInt32(1);
@@ -76,29 +91,6 @@ public class ServiceClient
         }
     }
 
-    public async Task<IResult> PerformTransaction(int id, RequestTransaction request)
-    {
-        if (id < 1 || id > 5)
-        {
-            return Results.NotFound("Não Existe");
-        }
-        if (request.Type != 'c' && request.Type != 'd'
-        || request.Description.Length > 10
-        || request.Value <= 0
-        || string.IsNullOrEmpty(request.Description))
-        {
-            return Results.UnprocessableEntity();
-        }
-        await slim.WaitAsync();
-        try
-        {
-            return await FinalTransaction(id, request);
-        }
-        finally
-        {
-            slim.Release();
-        }
-    }
     public async Task<IResult> GetExtract(int id)
     {
         if (id < 1 || id > 5)
@@ -108,14 +100,14 @@ public class ServiceClient
 
         using (var connection = new NpgsqlConnection(connStr))
         {
-            await connection.OpenAsync();
+            await connection.OpenAsync().ConfigureAwait(false);
             var command = @"SELECT saldo, limite FROM cliente WHERE id = @id;
                             SELECT valor, tipo_transacao, descricao, realizada_em FROM transacao WHERE id_cliente = @id ORDER BY realizada_em DESC LIMIT 10;";
 
-            using (var responses = await connection.QueryMultipleAsync(command, new { id = id }))
+            using (var responses = await connection.QueryMultipleAsync(command, new { id = id }).ConfigureAwait(false))
             {
-                var saldo = await responses.ReadFirstAsync<Balance>();
-                var list_transactions = await responses.ReadAsync<ResponseTransactions>();
+                var saldo = await responses.ReadFirstAsync<Balance>().ConfigureAwait(false);
+                var list_transactions = await responses.ReadAsync<ResponseTransactions>().ConfigureAwait(false);
                 var ultimas_transacoes = new List<ResponseTransactions>();
                 var js = new
                 {

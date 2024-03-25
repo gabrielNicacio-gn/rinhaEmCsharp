@@ -6,5 +6,5 @@ using System.Threading.Tasks;
 
 namespace src.DTOs
 {
-    public record ExtractResponse(int total, int limit, DateTime date);
+    public record ExtractResponse(int total, int limite, DateTime data_extrato);
 }
