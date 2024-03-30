@@ -7,5 +7,5 @@ using src.Models;
 
 namespace src.DTOs
 {
-    public record RequestTransaction(int Value, char Type, string Description);
+    public record RequestTransaction(int Valor, char Tipo, string Descricao);
 }
