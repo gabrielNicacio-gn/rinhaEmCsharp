@@ -13,7 +13,7 @@ public class ServiceClient
     {
         _configuration = configuration;
     }
-    private string connStr = "Host=db;Port=5432;Database=rinha;Username=admin;Password=123;";
+    private string connStr = "Host=db;Port=5432;Database=rinha;User ID=admin;Password=rinha123;";
     public async Task<IResult> PerformTransaction(int id, RequestTransaction request)
     {
         if (id < 1 || id > 5)
