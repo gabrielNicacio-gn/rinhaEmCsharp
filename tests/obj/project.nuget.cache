@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "dx3Sq018MjJilx8F3KPWNEu5i+pdMBpJDm56Lpx97HTmp7qISCCiX93VIYfyN+kTLAGyrNQwOjBMyuBaSIpFJA==",
+  "dgSpecHash": "Njl1XltSIG1l8pUi4n8hk/lYbDmCV2hT6WFsUeS+N/xaa9WMplFLG9kbH095UKlpGhjUVBkwS1rCakKpbHLfiA==",
   "success": true,
-  "projectFilePath": "/home/nicacio/Dev/rinhaEmCsharp/tests/tests.csproj",
+  "projectFilePath": "/home/nicacio/Dev/RinhaEmCsharp/tests/tests.csproj",
   "expectedPackageFiles": [
     "/home/nicacio/.nuget/packages/castle.core/5.1.1/castle.core.5.1.1.nupkg.sha512",
     "/home/nicacio/.nuget/packages/coverlet.collector/6.0.0/coverlet.collector.6.0.0.nupkg.sha512",
@@ -116,7 +116,8 @@
     "/home/nicacio/.nuget/packages/xunit.core/2.5.3/xunit.core.2.5.3.nupkg.sha512",
     "/home/nicacio/.nuget/packages/xunit.extensibility.core/2.5.3/xunit.extensibility.core.2.5.3.nupkg.sha512",
     "/home/nicacio/.nuget/packages/xunit.extensibility.execution/2.5.3/xunit.extensibility.execution.2.5.3.nupkg.sha512",
-    "/home/nicacio/.nuget/packages/xunit.runner.visualstudio/2.5.3/xunit.runner.visualstudio.2.5.3.nupkg.sha512"
+    "/home/nicacio/.nuget/packages/xunit.runner.visualstudio/2.5.3/xunit.runner.visualstudio.2.5.3.nupkg.sha512",
+    "/home/nicacio/.nuget/packages/microsoft.aspnetcore.app.ref/8.0.2/microsoft.aspnetcore.app.ref.8.0.2.nupkg.sha512"
   ],
   "logs": []
 }

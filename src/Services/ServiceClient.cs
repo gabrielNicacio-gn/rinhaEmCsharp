@@ -1,19 +1,10 @@
 
-using System.Data;
-using System.Data.Common;
-using System.Linq.Expressions;
-using System.Net.WebSockets;
-using System.Transactions;
 using Dapper;
-using Microsoft.AspNetCore.Components.Web;
-using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.VisualBasic;
 using Npgsql;
 using src.DTOs;
 using src.Models;
 
 namespace src.Services;
-
 public class ServiceClient
 {
 
@@ -37,11 +28,9 @@ public class ServiceClient
         {
             return Results.UnprocessableEntity();
         }
-        try
+        using (var connection = new NpgsqlConnection(connStr))
         {
-            using (var connection = new NpgsqlConnection(connStr))
-            {
-                var update = request.Tipo == 'c' ? @"
+            var update = request.Tipo == 'c' ? @"
                                 BEGIN;   
                                 INSERT INTO transacao (valor,id_cliente,tipo_transacao,descricao,realizada_em) 
                                 VALUES (@valor,@id_cliente,@tipo_transacao,@descricao,NOW()); 
@@ -51,7 +40,7 @@ public class ServiceClient
                                 RETURNING saldo,limite;
                                 COMMIT;
                                 "
-                            : @"
+                        : @"
                                 BEGIN;
                                 INSERT INTO transacao (valor,id_cliente,tipo_transacao,descricao,realizada_em) 
                                 VALUES (@valor,@id_cliente,@tipo_transacao,@descricao,NOW()); 
@@ -62,37 +51,33 @@ public class ServiceClient
                                 RETURNING saldo,limite;
                                 COMMIT;
                                 ";
-                await connection.OpenAsync().ConfigureAwait(false);
+            await connection.OpenAsync().ConfigureAwait(false);
 
-                using (var cmd = new NpgsqlCommand(update, connection))
+            using (var cmd = new NpgsqlCommand(update, connection))
+            {
+                var transaction = new Transactions(request.Valor, request.Tipo, request.Descricao);
+                cmd.Parameters.AddWithValue("@valor", transaction.Value);
+                cmd.Parameters.AddWithValue("@id_cliente", id);
+                cmd.Parameters.AddWithValue("@tipo_transacao", transaction.Type);
+                cmd.Parameters.AddWithValue("@descricao", transaction.Description);
+
+                await cmd.PrepareAsync().ConfigureAwait(false);
+
+                var reader = await cmd.ExecuteReaderAsync().ConfigureAwait(false);
+                while (await reader.ReadAsync().ConfigureAwait(false))
                 {
-                    var transaction = new Transactions(request.Valor, request.Tipo, request.Descricao);
-                    cmd.Parameters.AddWithValue("@valor", transaction.Value);
-                    cmd.Parameters.AddWithValue("@id_cliente", id);
-                    cmd.Parameters.AddWithValue("@tipo_transacao", transaction.Type);
-                    cmd.Parameters.AddWithValue("@descricao", transaction.Description);
-
-                    await cmd.PrepareAsync().ConfigureAwait(false);
-
-                    var reader = await cmd.ExecuteReaderAsync().ConfigureAwait(false);
-                    while (await reader.ReadAsync().ConfigureAwait(false))
+                    var balance = reader.GetInt32(0);
+                    var limit = reader.GetInt32(1);
+                    return Results.Ok(new
                     {
-                        var balance = reader.GetInt32(0);
-                        var limit = reader.GetInt32(1);
-                        return Results.Ok(new
-                        {
-                            limite = limit,
-                            saldo = balance
-                        });
-                    }
-                    return Results.UnprocessableEntity();
+                        limite = limit,
+                        saldo = balance
+                    });
                 }
+                return Results.UnprocessableEntity();
             }
         }
-        catch
-        {
-            return Results.UnprocessableEntity();
-        }
+
     }
 
     public async Task<IResult> GetExtract(int id)

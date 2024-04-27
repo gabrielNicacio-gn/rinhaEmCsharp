@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using src.Services;
 using src.DTOs;
-using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 

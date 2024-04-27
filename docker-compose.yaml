@@ -32,7 +32,7 @@ services:
     image: postgres:16.2
     hostname: db
     environment:
-      - POSTGRES_PASSWORD=123
+      - POSTGRES_PASSWORD=rinha123
       - POSTGRES_USER=admin
       - POSTGRES_DB=rinha
     ports:

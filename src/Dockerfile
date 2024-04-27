@@ -4,7 +4,7 @@ EXPOSE 8080
 EXPOSE 8081
 
 COPY . ./
-RUN dotnet restore
+RUN dotnet restore      
 
 RUN dotnet publish -c Release -o out
 

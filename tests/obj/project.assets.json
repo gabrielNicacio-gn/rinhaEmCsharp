@@ -6769,11 +6769,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/home/nicacio/Dev/rinhaEmCsharp/tests/tests.csproj",
+      "projectUniqueName": "/home/nicacio/Dev/RinhaEmCsharp/tests/tests.csproj",
       "projectName": "tests",
-      "projectPath": "/home/nicacio/Dev/rinhaEmCsharp/tests/tests.csproj",
+      "projectPath": "/home/nicacio/Dev/RinhaEmCsharp/tests/tests.csproj",
       "packagesPath": "/home/nicacio/.nuget/packages/",
-      "outputPath": "/home/nicacio/Dev/rinhaEmCsharp/tests/obj/",
+      "outputPath": "/home/nicacio/Dev/RinhaEmCsharp/tests/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/home/nicacio/.nuget/NuGet/NuGet.Config"
@@ -6788,8 +6788,8 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "/home/nicacio/Dev/rinhaEmCsharp/src/src.csproj": {
-              "projectPath": "/home/nicacio/Dev/rinhaEmCsharp/src/src.csproj"
+            "/home/nicacio/Dev/RinhaEmCsharp/src/src.csproj": {
+              "projectPath": "/home/nicacio/Dev/RinhaEmCsharp/src/src.csproj"
             }
           }
         }
@@ -6798,11 +6798,6 @@
         "warnAsError": [
           "NU1605"
         ]
-      },
-      "restoreAuditProperties": {
-        "enableAudit": "true",
-        "auditLevel": "low",
-        "auditMode": "direct"
       }
     },
     "frameworks": {
@@ -6841,12 +6836,18 @@
         ],
         "assetTargetFallback": true,
         "warn": true,
+        "downloadDependencies": [
+          {
+            "name": "Microsoft.AspNetCore.App.Ref",
+            "version": "[8.0.2, 8.0.2]"
+          }
+        ],
         "frameworkReferences": {
           "Microsoft.NETCore.App": {
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/8.0.203/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/8.0.102/PortableRuntimeIdentifierGraph.json"
       }
     }
   }
